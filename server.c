@@ -42,14 +42,16 @@ int main(int argc, char* argv[])
         char buff[BUFFIZE];
         char client_IP[BUFFIZE];
         char timebuff[BUFFIZE];
-        int port = atoi(argv[1]);
 
 
         struct sockaddr_in server_addr, client_addr;
         socklen_t client_addr_len;
 
         server_addr.sin_family = AF_INET;
-        server_addr.sin_port = htons(port);
+	if(argc == 2)
+        	server_addr.sin_port = htons(atoi(argv[1]));
+	else
+		server_addr.sin_port = htons(SERVER_PORT);
         server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
         //1 make socket

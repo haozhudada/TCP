@@ -19,12 +19,14 @@ int main(int argc, char* argv[])
         int res = 0;
         int count = 10;
         char buff[BUFFIZE];
-        int port = atoi(argv[1]);
 
         struct sockaddr_in server_addr;
         server_addr.sin_family = AF_INET;
-        server_addr.sin_port = htons(port);
-        inet_pton(AF_INET,"127.0.0.1",&server_addr.sin_addr);
+	if(argc == 2)
+	        server_addr.sin_port = htons(atoi(argv[1]));
+        else
+		server_addr.sin_port = htons(SERVER_PORT);
+	inet_pton(AF_INET,"127.0.0.1",&server_addr.sin_addr);
         // 1 make socket
         fd = socket(AF_INET, SOCK_STREAM, 0);
         if(fd == 1)
