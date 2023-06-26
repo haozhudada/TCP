@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 	else
 		server_addr.sin_port = htons(SERVER_PORT);
         server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
+	//server_addr.sin_addr.s_addr = inet_addr("192.168.0.107");
         //1 make socket
         lfd = socket(AF_INET, SOCK_STREAM, 0);
         if(lfd == -1)
@@ -78,20 +78,21 @@ int main(int argc, char* argv[])
                 return -3;
         }
 
-        //4 accept client
-        client_addr_len = sizeof(client_addr);
-        printf("acepting ... ... ...\n");
-        newfd = accept(lfd, (struct sockaddr*)(&client_addr), &client_addr_len);
-        if(newfd == -1)
-        {
-                printf("accept failed.\n");
-                return -4;
-        }
+	while(1)
+	{
+		
+        	//4 accept client
+        	client_addr_len = sizeof(client_addr);
+        	printf("acepting ... ... ...\n");
+        	newfd = accept(lfd, (struct sockaddr*)(&client_addr), &client_addr_len);
+        	if(newfd == -1)
+        	{
+                	printf("accept failed.\n");
+                	return -4;
+        	}
 
 		printf("client ip = %s, port = %d\n", inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, client_IP, sizeof(client_IP)), ntohs(client_addr.sin_port));
 
-        while(1)
-        {
                 memset(buff, 0, sizeof(buff));
                 memset(timebuff, 0, sizeof(timebuff));
                 //5 read client
@@ -103,16 +104,21 @@ int main(int argc, char* argv[])
                 }
 
                 write(STDOUT_FILENO, buff, res);
+		if(!fork())
+		{
 
-                //6 send same data back
-                getDateTime(timebuff);
-                strcat(buff,timebuff);
-                send(newfd, buff, strlen(buff),0);
-                //write(newfd, buff, res);
+                	//6 send same data back
+	                getDateTime(timebuff);
+        	        strcat(buff,timebuff);
+                	send(newfd, buff, strlen(buff),0);
+                	//write(newfd, buff, res);
+			close(newfd);
+			exit(0);
 		}
-        close(lfd);
-        close(newfd);
+        	close(newfd);
+	}
 
+        close(lfd);
         return 0;
 }
 
