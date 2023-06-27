@@ -39,10 +39,11 @@ void getDateTime(char* ptime)
 int main(int argc, char* argv[])
 {
         int lfd = 0, newfd = 0, res = 0;
-        char buff[BUFFIZE];
+        const int on = 1;
+	char buff[BUFFIZE];
         char client_IP[BUFFIZE];
         char timebuff[BUFFIZE];
-
+	
 
         struct sockaddr_in server_addr, client_addr;
         socklen_t client_addr_len;
@@ -52,8 +53,8 @@ int main(int argc, char* argv[])
         	server_addr.sin_port = htons(atoi(argv[1]));
 	else
 		server_addr.sin_port = htons(SERVER_PORT);
-        server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	//server_addr.sin_addr.s_addr = inet_addr("192.168.0.107");
+        //server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	server_addr.sin_addr.s_addr = inet_addr("192.168.106.128");
         //1 make socket
         lfd = socket(AF_INET, SOCK_STREAM, 0);
         if(lfd == -1)
@@ -61,7 +62,9 @@ int main(int argc, char* argv[])
                 printf("make socket failed.\n");
                 return -1;
         }
-
+	
+	//解決斷開異常，重新鏈接失敗的問題
+	setsockopt(lfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
         //2 bind server struct
         res = bind(lfd, (struct sockaddr*)(&server_addr), sizeof(server_addr));
         if(res == -1)
@@ -90,30 +93,33 @@ int main(int argc, char* argv[])
                 	printf("accept failed.\n");
                 	return -4;
         	}
-
-		printf("client ip = %s, port = %d\n", inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, client_IP, sizeof(client_IP)), ntohs(client_addr.sin_port));
-
-                memset(buff, 0, sizeof(buff));
-                memset(timebuff, 0, sizeof(timebuff));
-                //5 read client
-                res = read(newfd, buff, sizeof(buff));
-                if(res == -1)
-                {
-                        printf("read failed.\n");
-                        return -5;
-                }
-
-                write(STDOUT_FILENO, buff, res);
+		
 		if(!fork())
 		{
+			while(1)
+			{
+				printf("client ip = %s, port = %d\n", inet_ntop(AF_INET, &client_addr.sin_addr.s_addr, client_IP, sizeof(client_IP)), ntohs(client_addr.sin_port));
 
-                	//6 send same data back
-	                getDateTime(timebuff);
-        	        strcat(buff,timebuff);
-                	send(newfd, buff, strlen(buff),0);
-                	//write(newfd, buff, res);
-			close(newfd);
-			exit(0);
+        		        memset(buff, 0, sizeof(buff));
+        	        	memset(timebuff, 0, sizeof(timebuff));
+        	        	//5 read client
+        	        	res = read(newfd, buff, sizeof(buff));
+        	        	if(res == -1)
+        	        	{
+        	                	printf("read failed.\n");
+        	                	return -5;
+        	        	}
+	
+        	        	write(STDOUT_FILENO, buff, res);
+
+        	        	//6 send same data back
+	        		getDateTime(timebuff);
+       	        		strcat(buff,timebuff);
+               			send(newfd, buff, strlen(buff),0);
+               			//write(newfd, buff, res);
+				close(newfd);
+				exit(0);
+			}
 		}
         	close(newfd);
 	}

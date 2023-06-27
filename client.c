@@ -26,8 +26,9 @@ int main(int argc, char* argv[])
 	        server_addr.sin_port = htons(atoi(argv[1]));
         else
 		server_addr.sin_port = htons(SERVER_PORT);
-	inet_pton(AF_INET,"127.0.0.1",&server_addr.sin_addr);
-        // 1 make socket
+	//inet_pton(AF_INET,"127.0.0.1",&server_addr.sin_addr);
+        server_addr.sin_addr.s_addr = inet_addr("192.168.106.128");//字符串形式，本地字節轉網絡
+	// 1 make socket
         fd = socket(AF_INET, SOCK_STREAM, 0);
         if(fd == 1)
         {
@@ -43,8 +44,8 @@ int main(int argc, char* argv[])
                 return -2;
         }
 
-        while(count--)
-        {
+        //while(count--)
+        //{
                 //3 write data to server.
                 res = write(fd, "hello.\n",sizeof("hello.\n"));
                 if(res == -1)
@@ -69,7 +70,7 @@ int main(int argc, char* argv[])
                         printf("write desktop failed.\n");
                         return -5;
                 }
-        }
+        //}
         close(fd);
         return 0;
 }
