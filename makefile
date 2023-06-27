@@ -1,4 +1,4 @@
-NY:all
+PHONY:all
 all:server client
 TAR = server client
 
